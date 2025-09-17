@@ -39,21 +39,27 @@ public class QuestaoService {
     public QuestaoDTO atualizar(String id, QuestaoUpdateDTO dto) {
         var q = repo.findById(id).orElseThrow(() -> new RuntimeException("Questão não encontrada."));
 
-        if (dto.id_formulario() != null) q.setIdFormulario(dto.id_formulario());
-        if (dto.id_usuario()   != null) q.setIdUsuario(dto.id_usuario());
-        if (dto.topic()        != null) q.setTopic(dto.topic());
-        if (dto.subskill()     != null) q.setSubskill(dto.subskill());
-        if (dto.difficulty()   != null) q.setDifficulty(dto.difficulty());
-        if (dto.question()     != null) q.setQuestion(dto.question());
-        if (dto.options()      != null) q.setOptions(dto.options());
-        if (dto.correct_option()!= null) q.setCorrectOption(dto.correct_option());
-        if (dto.solution()     != null) q.setSolution(dto.solution());
-        if (dto.structure()    != null) q.setStructure(dto.structure());
-        if (dto.format()       != null) q.setFormat(dto.format());
-        if (dto.representation()!= null) q.setRepresentation(dto.representation());
-        if (dto.hint()         != null) q.setHint(dto.hint());
+        if (dto.id_formulario()  != null) q.setIdFormulario(dto.id_formulario());
+        if (dto.id_usuario()     != null) q.setIdUsuario(dto.id_usuario());
+        if (dto.topic()          != null) q.setTopic(dto.topic());
+        if (dto.subskill()       != null) q.setSubskill(dto.subskill());
+        if (dto.difficulty()     != null) q.setDifficulty(dto.difficulty());
+        if (dto.question()       != null) q.setQuestion(dto.question());
+        if (dto.options()        != null) q.setOptions(dto.options());
+        if (dto.correct_option() != null) q.setCorrectOption(dto.correct_option());
+        if (dto.solution()       != null) q.setSolution(dto.solution());
+        if (dto.structure()      != null) q.setStructure(dto.structure());
+        if (dto.format()         != null) q.setFormat(dto.format());
+        if (dto.representation() != null) q.setRepresentation(dto.representation());
+        if (dto.hint()           != null) q.setHint(dto.hint());
         if (dto.target_mistakes()!= null) q.setTargetMistakes(dto.target_mistakes());
-        if (dto.source()       != null) q.setSource(dto.source());
+        if (dto.source()         != null) q.setSource(dto.source());
+
+        // ---- novos (parcial) ----
+        if (dto.alternativa_marcada() != null) q.setAlternativaMarcada(dto.alternativa_marcada());
+        if (dto.dica()                != null) q.setDica(dto.dica());
+        if (dto.solucao()             != null) q.setSolucao(dto.solucao());
+        if (dto.modulo()              != null) q.setModulo(dto.modulo());
 
         return toDTO(repo.save(q));
     }
@@ -63,7 +69,7 @@ public class QuestaoService {
         repo.deleteById(id);
     }
 
-    // mapping
+    // mappers
     private Questao fromCreate(QuestaoCreateDTO d) {
         return Questao.builder()
                 .idFormulario(d.id_formulario())
@@ -81,6 +87,11 @@ public class QuestaoService {
                 .hint(d.hint())
                 .targetMistakes(d.target_mistakes())
                 .source(d.source())
+                // novos
+                .alternativaMarcada(d.alternativa_marcada())
+                .dica(d.dica())
+                .solucao(d.solucao())
+                .modulo(d.modulo())
                 .build();
     }
 
@@ -101,7 +112,12 @@ public class QuestaoService {
                 q.getRepresentation(),
                 q.getHint(),
                 q.getTargetMistakes(),
-                q.getSource()
+                q.getSource(),
+                // novos
+                q.getAlternativaMarcada(),
+                q.getDica(),
+                q.getSolucao(),
+                q.getModulo()
         );
     }
 }

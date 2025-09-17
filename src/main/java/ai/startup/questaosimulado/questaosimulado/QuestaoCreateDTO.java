@@ -19,5 +19,9 @@ public record QuestaoCreateDTO(
         String representation,
         String hint,
         List<String> target_mistakes,
-        String source
+        String source,
+        String  alternativa_marcada,
+        Boolean dica,
+        Boolean solucao,
+        Integer modulo
 ) {}

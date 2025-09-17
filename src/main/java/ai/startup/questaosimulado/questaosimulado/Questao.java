@@ -35,4 +35,9 @@ public class Questao {
 
     private List<String> targetMistakes;
     private String source;
+
+    private String  alternativaMarcada;
+    private Boolean dica;
+    private Boolean solucao;
+    private Integer modulo;
 }
