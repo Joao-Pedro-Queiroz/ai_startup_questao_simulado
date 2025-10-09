@@ -3,7 +3,6 @@ package ai.startup.questaosimulado.questaosimulado;
 import java.util.List;
 import java.util.Map;
 
-/** Update parcial: só campos != null são aplicados */
 public record QuestaoUpdateDTO(
         String id_formulario,
         String id_usuario,
@@ -11,8 +10,8 @@ public record QuestaoUpdateDTO(
         String subskill,
         String difficulty,
         String question,
-        Map<String, String> options,
-        String correct_option,
+        Map<String,String> options,
+        Object correct_option,
         List<String> solution,
         String structure,
         String format,
@@ -20,7 +19,14 @@ public record QuestaoUpdateDTO(
         String hint,
         List<String> target_mistakes,
         String source,
-        String  alternativa_marcada,
+
+        List<String> solution_english,
+        List<String> solution_portugues,
+        String hint_english,
+        String hint_portugues,
+        Map<String,Object> figure,
+
+        String alternativa_marcada,
         Boolean dica,
         Boolean solucao,
         Integer modulo

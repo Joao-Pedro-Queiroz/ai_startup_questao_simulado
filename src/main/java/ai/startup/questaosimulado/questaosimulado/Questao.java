@@ -7,37 +7,56 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 import java.util.Map;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Document("questao_simulado")
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Document("questoes")
 public class Questao {
     @Id
     private String id;
 
-    private String idFormulario;   // id_formulario
-    private String idUsuario;      // id_usuario
+    private String idFormulario;
+    private String idUsuario;
 
     private String topic;
     private String subskill;
     private String difficulty;
 
-    private String question;       // pode conter LaTeX
-    private Map<String, String> options; // A,B,C,D...
-    private String correctOption;
+    private String question;
 
-    private List<String> solution; // passos da solução
+    // Pode ser vazio em free_response
+    private Map<String, String> options;
+
+    // Agora pode ser "A"/"B"... ou -1 (free_response)
+    private Object correctOption;
+
+    // Soluções bilíngues (novos campos)
+    private List<String> solutionEnglish;
+    private List<String> solutionPortugues;
+
+    // Mantém retrocompatibilidade: se só vier "solution" antiga
+    private List<String> solution; // opcional
+
     private String structure;
     private String format;
-    private String representation;
-    private String hint;
+    private String representation; // se vier
 
+    // Dicas bilíngues
+    private String hintEnglish;
+    private String hintPortugues;
+
+    // Mantém retrocompatibilidade: se só vier "hint" antiga
+    private String hint; // opcional
+
+    // Lista de erros-alvo
     private List<String> targetMistakes;
+
+    // Figura (gráficos/linhas), estruturado ou livre
+    private Map<String, Object> figure;
+
     private String source;
 
-    private String  alternativaMarcada;
-    private Boolean dica;
-    private Boolean solucao;
-    private Integer modulo;
+    // Campos do app
+    private String alternativaMarcada;
+    private Boolean dica;     // usou dica?
+    private Boolean solucao;  // abriu solução?
+    private Integer modulo;   // 1 ou 2
 }

@@ -1,7 +1,9 @@
 package ai.startup.questaosimulado.questaosimulado;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -13,22 +15,10 @@ public class QuestaoService {
         this.repo = repo;
     }
 
-    // Cadastro em massa
-    public List<QuestaoDTO> criarEmLote(List<QuestaoCreateDTO> itens) {
-        var entidades = itens.stream().map(this::fromCreate).toList();
-        return repo.saveAll(entidades).stream().map(this::toDTO).toList();
-    }
-
+    // ===== CRUD =====
     public List<QuestaoDTO> listar() {
-        return repo.findAll().stream().map(this::toDTO).toList();
-    }
-
-    public List<QuestaoDTO> listarPorSimulado(String idSimulado) {
-        return repo.findByIdFormulario(idSimulado).stream().map(this::toDTO).toList();
-    }
-
-    public List<QuestaoDTO> listarPorUsuario(String idUsuario) {
-        return repo.findByIdUsuario(idUsuario).stream().map(this::toDTO).toList();
+        return repo.findAll(Sort.by(Sort.Direction.ASC, "idFormulario", "modulo"))
+                .stream().map(this::toDTO).toList();
     }
 
     public QuestaoDTO obter(String id) {
@@ -36,30 +26,71 @@ public class QuestaoService {
                 .orElseThrow(() -> new RuntimeException("Questão não encontrada."));
     }
 
-    public QuestaoDTO atualizar(String id, QuestaoUpdateDTO dto) {
+    /** Criação em lote */
+    public List<QuestaoDTO> criarEmLote(List<QuestoesCreateItemDTO> itens) {
+        List<Questao> salvar = new ArrayList<>();
+        for (var item : itens) {
+            Questao q = Questao.builder()
+                    .idFormulario(item.id_formulario())
+                    .idUsuario(item.id_usuario())
+                    .topic(item.topic())
+                    .subskill(item.subskill())
+                    .difficulty(item.difficulty())
+                    .question(item.question())
+                    .options(item.options())
+                    .correctOption(item.correct_option())          // Object
+                    .solution(item.solution())                     // legado
+                    .solutionEnglish(item.solution_english())
+                    .solutionPortugues(item.solution_portugues())
+                    .structure(item.structure())
+                    .format(item.format())
+                    .representation(item.representation())
+                    .hint(item.hint())                             // legado
+                    .hintEnglish(item.hint_english())
+                    .hintPortugues(item.hint_portugues())
+                    .targetMistakes(item.target_mistakes())
+                    .figure(item.figure())
+                    .source(item.source())
+                    .alternativaMarcada(item.alternativa_marcada())
+                    .dica(item.dica() == null ? false : item.dica())
+                    .solucao(item.solucao() == null ? false : item.solucao())
+                    .modulo(item.modulo())
+                    .build();
+            salvar.add(q);
+        }
+        return repo.saveAll(salvar).stream().map(this::toDTO).toList();
+    }
+
+    /** Update parcial */
+    public QuestaoDTO atualizar(String id, QuestaoUpdateDTO d) {
         var q = repo.findById(id).orElseThrow(() -> new RuntimeException("Questão não encontrada."));
 
-        if (dto.id_formulario()  != null) q.setIdFormulario(dto.id_formulario());
-        if (dto.id_usuario()     != null) q.setIdUsuario(dto.id_usuario());
-        if (dto.topic()          != null) q.setTopic(dto.topic());
-        if (dto.subskill()       != null) q.setSubskill(dto.subskill());
-        if (dto.difficulty()     != null) q.setDifficulty(dto.difficulty());
-        if (dto.question()       != null) q.setQuestion(dto.question());
-        if (dto.options()        != null) q.setOptions(dto.options());
-        if (dto.correct_option() != null) q.setCorrectOption(dto.correct_option());
-        if (dto.solution()       != null) q.setSolution(dto.solution());
-        if (dto.structure()      != null) q.setStructure(dto.structure());
-        if (dto.format()         != null) q.setFormat(dto.format());
-        if (dto.representation() != null) q.setRepresentation(dto.representation());
-        if (dto.hint()           != null) q.setHint(dto.hint());
-        if (dto.target_mistakes()!= null) q.setTargetMistakes(dto.target_mistakes());
-        if (dto.source()         != null) q.setSource(dto.source());
+        if (d.id_formulario()     != null) q.setIdFormulario(d.id_formulario());
+        if (d.id_usuario()        != null) q.setIdUsuario(d.id_usuario());
+        if (d.topic()             != null) q.setTopic(d.topic());
+        if (d.subskill()          != null) q.setSubskill(d.subskill());
+        if (d.difficulty()        != null) q.setDifficulty(d.difficulty());
+        if (d.question()          != null) q.setQuestion(d.question());
+        if (d.options()           != null) q.setOptions(d.options());
+        if (d.correct_option()    != null) q.setCorrectOption(d.correct_option());
+        if (d.solution()          != null) q.setSolution(d.solution());              // legado
+        if (d.structure()         != null) q.setStructure(d.structure());
+        if (d.format()            != null) q.setFormat(d.format());
+        if (d.representation()    != null) q.setRepresentation(d.representation());
+        if (d.hint()              != null) q.setHint(d.hint());                      // legado
+        if (d.target_mistakes()   != null) q.setTargetMistakes(d.target_mistakes());
+        if (d.source()            != null) q.setSource(d.source());
 
-        // ---- novos (parcial) ----
-        if (dto.alternativa_marcada() != null) q.setAlternativaMarcada(dto.alternativa_marcada());
-        if (dto.dica()                != null) q.setDica(dto.dica());
-        if (dto.solucao()             != null) q.setSolucao(dto.solucao());
-        if (dto.modulo()              != null) q.setModulo(dto.modulo());
+        if (d.solution_english()  != null) q.setSolutionEnglish(d.solution_english());
+        if (d.solution_portugues()!= null) q.setSolutionPortugues(d.solution_portugues());
+        if (d.hint_english()      != null) q.setHintEnglish(d.hint_english());
+        if (d.hint_portugues()    != null) q.setHintPortugues(d.hint_portugues());
+        if (d.figure()            != null) q.setFigure(d.figure());
+
+        if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(d.alternativa_marcada());
+        if (d.dica()              != null) q.setDica(d.dica());
+        if (d.solucao()           != null) q.setSolucao(d.solucao());
+        if (d.modulo()            != null) q.setModulo(d.modulo());
 
         return toDTO(repo.save(q));
     }
@@ -69,32 +100,16 @@ public class QuestaoService {
         repo.deleteById(id);
     }
 
-    // mappers
-    private Questao fromCreate(QuestaoCreateDTO d) {
-        return Questao.builder()
-                .idFormulario(d.id_formulario())
-                .idUsuario(d.id_usuario())
-                .topic(d.topic())
-                .subskill(d.subskill())
-                .difficulty(d.difficulty())
-                .question(d.question())
-                .options(d.options())
-                .correctOption(d.correct_option())
-                .solution(d.solution())
-                .structure(d.structure())
-                .format(d.format())
-                .representation(d.representation())
-                .hint(d.hint())
-                .targetMistakes(d.target_mistakes())
-                .source(d.source())
-                // novos
-                .alternativaMarcada(d.alternativa_marcada())
-                .dica(d.dica())
-                .solucao(d.solucao())
-                .modulo(d.modulo())
-                .build();
+    // ===== Listagens auxiliares =====
+    public List<QuestaoDTO> listarPorSimulado(String idFormulario) {
+        return repo.findByIdFormulario(idFormulario).stream().map(this::toDTO).toList();
     }
 
+    public List<QuestaoDTO> listarPorUsuario(String idUsuario) {
+        return repo.findByIdUsuario(idUsuario).stream().map(this::toDTO).toList();
+    }
+
+    // ===== Mapper =====
     private QuestaoDTO toDTO(Questao q) {
         return new QuestaoDTO(
                 q.getId(),
@@ -107,13 +122,17 @@ public class QuestaoService {
                 q.getOptions(),
                 q.getCorrectOption(),
                 q.getSolution(),
+                q.getSolutionEnglish(),
+                q.getSolutionPortugues(),
                 q.getStructure(),
                 q.getFormat(),
                 q.getRepresentation(),
                 q.getHint(),
+                q.getHintEnglish(),
+                q.getHintPortugues(),
                 q.getTargetMistakes(),
+                q.getFigure(),
                 q.getSource(),
-                // novos
                 q.getAlternativaMarcada(),
                 q.getDica(),
                 q.getSolucao(),
