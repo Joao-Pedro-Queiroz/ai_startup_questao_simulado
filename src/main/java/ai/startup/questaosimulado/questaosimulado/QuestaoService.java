@@ -1,7 +1,9 @@
 package ai.startup.questaosimulado.questaosimulado;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +25,15 @@ public class QuestaoService {
 
     public QuestaoDTO obter(String id) {
         return repo.findById(id).map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Questão não encontrada."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Questão não encontrada."));
     }
 
     /** Criação em lote */
     public List<QuestaoDTO> criarEmLote(List<QuestoesCreateItemDTO> itens) {
+        if (itens == null || itens.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lista de questões vazia ou inválida.");
+        }
+
         List<Questao> salvar = new ArrayList<>();
         for (var item : itens) {
             Questao q = Questao.builder()
@@ -63,7 +69,8 @@ public class QuestaoService {
 
     /** Update parcial */
     public QuestaoDTO atualizar(String id, QuestaoUpdateDTO d) {
-        var q = repo.findById(id).orElseThrow(() -> new RuntimeException("Questão não encontrada."));
+        var q = repo.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Questão não encontrada."));
 
         if (d.id_formulario()     != null) q.setIdFormulario(d.id_formulario());
         if (d.id_usuario()        != null) q.setIdUsuario(d.id_usuario());
@@ -96,7 +103,9 @@ public class QuestaoService {
     }
 
     public void deletar(String id) {
-        if (!repo.existsById(id)) throw new RuntimeException("Questão não encontrada.");
+        if (!repo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Questão não encontrada.");
+        }
         repo.deleteById(id);
     }
 
