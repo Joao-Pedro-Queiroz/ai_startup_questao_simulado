@@ -9,6 +9,8 @@ import java.util.Map;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 @Document("questoes")
+@org.springframework.data.mongodb.core.index.CompoundIndex(name = "formulario_idx", def = "{'idFormulario': 1}")
+@org.springframework.data.mongodb.core.index.CompoundIndex(name = "usuario_idx", def = "{'idUsuario': 1}")
 public class Questao {
     @Id
     private String id;
