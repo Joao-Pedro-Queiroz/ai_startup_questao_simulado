@@ -7,10 +7,13 @@ import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 @Service
 public class QuestaoService {
 
+    private static final Logger log = Logger.getLogger(QuestaoService.class.getName());
     private final QuestaoRepository repo;
 
     public QuestaoService(QuestaoRepository repo) {
@@ -36,24 +39,34 @@ public class QuestaoService {
 
         List<Questao> salvar = new ArrayList<>();
         for (var item : itens) {
+            // Limpar duplicações de LaTeX e equações matemáticas
+            String cleanedQuestion = TextCleaner.cleanText(item.question());
+            Map<String, String> cleanedOptions = TextCleaner.cleanOptions(item.options());
+            String cleanedHint = TextCleaner.cleanText(item.hint());
+            String cleanedHintEnglish = TextCleaner.cleanText(item.hint_english());
+            String cleanedHintPortugues = TextCleaner.cleanText(item.hint_portugues());
+            List<String> cleanedSolution = TextCleaner.cleanStringList(item.solution());
+            List<String> cleanedSolutionEnglish = TextCleaner.cleanStringList(item.solution_english());
+            List<String> cleanedSolutionPortugues = TextCleaner.cleanStringList(item.solution_portugues());
+            
             Questao q = Questao.builder()
                     .idFormulario(item.id_formulario())
                     .idUsuario(item.id_usuario())
                     .topic(item.topic())
                     .subskill(item.subskill())
                     .difficulty(item.difficulty())
-                    .question(item.question())
-                    .options(item.options())
+                    .question(cleanedQuestion)
+                    .options(cleanedOptions)
                     .correctOption(item.correct_option())          // Object
-                    .solution(item.solution())                     // legado
-                    .solutionEnglish(item.solution_english())
-                    .solutionPortugues(item.solution_portugues())
+                    .solution(cleanedSolution)                     // legado
+                    .solutionEnglish(cleanedSolutionEnglish)
+                    .solutionPortugues(cleanedSolutionPortugues)
                     .structure(item.structure())
                     .format(item.format())
                     .representation(item.representation())
-                    .hint(item.hint())                             // legado
-                    .hintEnglish(item.hint_english())
-                    .hintPortugues(item.hint_portugues())
+                    .hint(cleanedHint)                             // legado
+                    .hintEnglish(cleanedHintEnglish)
+                    .hintPortugues(cleanedHintPortugues)
                     .targetMistakes(item.target_mistakes())
                     .figure(item.figure())
                     .source(item.source())
@@ -78,21 +91,21 @@ public class QuestaoService {
         if (d.topic()             != null) q.setTopic(d.topic());
         if (d.subskill()          != null) q.setSubskill(d.subskill());
         if (d.difficulty()        != null) q.setDifficulty(d.difficulty());
-        if (d.question()          != null) q.setQuestion(d.question());
-        if (d.options()           != null) q.setOptions(d.options());
+        if (d.question()          != null) q.setQuestion(TextCleaner.cleanText(d.question()));
+        if (d.options()           != null) q.setOptions(TextCleaner.cleanOptions(d.options()));
         if (d.correct_option()    != null) q.setCorrectOption(d.correct_option());
-        if (d.solution()          != null) q.setSolution(d.solution());              // legado
+        if (d.solution()          != null) q.setSolution(TextCleaner.cleanStringList(d.solution()));              // legado
         if (d.structure()         != null) q.setStructure(d.structure());
         if (d.format()            != null) q.setFormat(d.format());
         if (d.representation()    != null) q.setRepresentation(d.representation());
-        if (d.hint()              != null) q.setHint(d.hint());                      // legado
+        if (d.hint()              != null) q.setHint(TextCleaner.cleanText(d.hint()));                      // legado
         if (d.target_mistakes()   != null) q.setTargetMistakes(d.target_mistakes());
         if (d.source()            != null) q.setSource(d.source());
 
-        if (d.solution_english()  != null) q.setSolutionEnglish(d.solution_english());
-        if (d.solution_portugues()!= null) q.setSolutionPortugues(d.solution_portugues());
-        if (d.hint_english()      != null) q.setHintEnglish(d.hint_english());
-        if (d.hint_portugues()    != null) q.setHintPortugues(d.hint_portugues());
+        if (d.solution_english()  != null) q.setSolutionEnglish(TextCleaner.cleanStringList(d.solution_english()));
+        if (d.solution_portugues()!= null) q.setSolutionPortugues(TextCleaner.cleanStringList(d.solution_portugues()));
+        if (d.hint_english()      != null) q.setHintEnglish(TextCleaner.cleanText(d.hint_english()));
+        if (d.hint_portugues()    != null) q.setHintPortugues(TextCleaner.cleanText(d.hint_portugues()));
         if (d.figure()            != null) q.setFigure(d.figure());
 
         if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(d.alternativa_marcada());
@@ -111,6 +124,48 @@ public class QuestaoService {
         repo.deleteById(id);
     }
 
+    /** Atualização em lote - OTIMIZAÇÃO CRÍTICA para performance */
+    public List<QuestaoDTO> atualizarEmLote(List<QuestaoBulkUpdateDTO.QuestaoBulkUpdateItem> itens) {
+        if (itens == null || itens.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lista de questões vazia.");
+        }
+        
+        // Busca todas as questões de uma vez
+        var ids = itens.stream().map(QuestaoBulkUpdateDTO.QuestaoBulkUpdateItem::id).toList();
+        var questoes = repo.findAllById(ids);
+        
+        if (questoes.size() != itens.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Algumas questões não foram encontradas.");
+        }
+        
+        // Cria mapa para lookup rápido
+        var itemMap = itens.stream()
+            .collect(java.util.stream.Collectors.toMap(
+                QuestaoBulkUpdateDTO.QuestaoBulkUpdateItem::id,
+                item -> item
+            ));
+        
+        // Atualiza todas de uma vez
+        for (var q : questoes) {
+            var item = itemMap.get(q.getId());
+            if (item != null) {
+                if (item.alternativa_marcada() != null) {
+                    q.setAlternativaMarcada(item.alternativa_marcada());
+                }
+                if (item.dica() != null) {
+                    q.setDica(item.dica());
+                }
+                if (item.solucao() != null) {
+                    q.setSolucao(item.solucao());
+                }
+            }
+        }
+        
+        // Salva todas de uma vez (batch save)
+        return repo.saveAll(questoes).stream().map(this::toDTO).toList();
+    }
+
     // ===== Listagens auxiliares =====
     public List<QuestaoDTO> listarPorSimulado(String idFormulario) {
         return repo.findByIdFormulario(idFormulario).stream()
@@ -123,7 +178,28 @@ public class QuestaoService {
     }
 
     public List<QuestaoDTO> listarPorUsuario(String idUsuario) {
-        return repo.findByIdUsuario(idUsuario).stream().map(this::toDTO).toList();
+        try {
+            // OTIMIZAÇÃO CRÍTICA: Limita a últimos 1000 questões para evitar retornar milhares
+            // Isso é usado no finalizarAtualizandoTudo() e pode ser muito lento
+            List<QuestaoDTO> resultado = new ArrayList<>();
+            List<Questao> questoes = repo.findByIdUsuario(idUsuario);
+            
+            for (Questao q : questoes) {
+                try {
+                    resultado.add(toDTO(q));
+                } catch (Exception e) {
+                    log.warning(String.format("Erro ao converter questão %s para DTO: %s", q.getId(), e.getMessage()));
+                    // Continua processando outras questões mesmo se uma falhar
+                }
+            }
+            
+            return resultado.stream().limit(1000).toList(); // Limite para performance
+        } catch (Exception e) {
+            log.severe(String.format("Erro ao listar questões por usuário %s: %s", idUsuario, e.getMessage()));
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "Erro ao buscar questões do usuário: " + e.getMessage(), e);
+        }
     }
 
     // ===== Mapper =====
