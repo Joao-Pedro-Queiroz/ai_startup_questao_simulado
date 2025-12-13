@@ -61,6 +61,7 @@ public class QuestaoService {
                     .dica(item.dica() == null ? false : item.dica())
                     .solucao(item.solucao() == null ? false : item.solucao())
                     .modulo(item.modulo())
+                    .ordem(item.ordem())
                     .build();
             salvar.add(q);
         }
@@ -98,6 +99,7 @@ public class QuestaoService {
         if (d.dica()              != null) q.setDica(d.dica());
         if (d.solucao()           != null) q.setSolucao(d.solucao());
         if (d.modulo()            != null) q.setModulo(d.modulo());
+        if (d.ordem()             != null) q.setOrdem(d.ordem());
 
         return toDTO(repo.save(q));
     }
@@ -111,7 +113,13 @@ public class QuestaoService {
 
     // ===== Listagens auxiliares =====
     public List<QuestaoDTO> listarPorSimulado(String idFormulario) {
-        return repo.findByIdFormulario(idFormulario).stream().map(this::toDTO).toList();
+        return repo.findByIdFormulario(idFormulario).stream()
+                .sorted((q1, q2) -> {
+                    Integer ordem1 = q1.getOrdem() != null ? q1.getOrdem() : Integer.MAX_VALUE;
+                    Integer ordem2 = q2.getOrdem() != null ? q2.getOrdem() : Integer.MAX_VALUE;
+                    return ordem1.compareTo(ordem2);
+                })
+                .map(this::toDTO).toList();
     }
 
     public List<QuestaoDTO> listarPorUsuario(String idUsuario) {
@@ -145,7 +153,8 @@ public class QuestaoService {
                 q.getAlternativaMarcada(),
                 q.getDica(),
                 q.getSolucao(),
-                q.getModulo()
+                q.getModulo(),
+                q.getOrdem()
         );
     }
 }

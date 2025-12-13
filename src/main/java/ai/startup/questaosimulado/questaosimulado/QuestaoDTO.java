@@ -30,5 +30,6 @@ public record QuestaoDTO(
         String alternativa_marcada,
         Boolean dica,
         Boolean solucao,
-        Integer modulo
+        Integer modulo,
+        Integer ordem
 ) {}

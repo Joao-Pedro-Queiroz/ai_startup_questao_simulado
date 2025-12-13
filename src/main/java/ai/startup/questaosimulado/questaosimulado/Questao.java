@@ -59,4 +59,5 @@ public class Questao {
     private Boolean dica;     // usou dica?
     private Boolean solucao;  // abriu solução?
     private Integer modulo;   // 1 ou 2
+    private Integer ordem;    // ordem da questão no simulado
 }
