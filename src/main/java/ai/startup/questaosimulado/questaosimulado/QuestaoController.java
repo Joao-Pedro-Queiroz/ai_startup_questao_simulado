@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 @RestController
@@ -84,15 +83,5 @@ public class QuestaoController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Erro ao buscar questões do usuário: " + e.getMessage(), e);
         }
-    }
-
-    // ===== Endpoint administrativo para limpar questões existentes =====
-    @PostMapping("/questoes/limpar-duplicacoes")
-    public ResponseEntity<Map<String, Object>> limparDuplicacoes() {
-        int atualizadas = service.limparTodasQuestoes();
-        Map<String, Object> response = new java.util.HashMap<>();
-        response.put("questoes_atualizadas", atualizadas);
-        response.put("mensagem", "Limpeza de duplicações concluída");
-        return ResponseEntity.ok(response);
     }
 }
