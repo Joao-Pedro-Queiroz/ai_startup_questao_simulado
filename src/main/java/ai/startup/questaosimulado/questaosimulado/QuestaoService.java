@@ -74,6 +74,7 @@ public class QuestaoService {
                     .dica(item.dica() == null ? false : item.dica())
                     .solucao(item.solucao() == null ? false : item.solucao())
                     .modulo(item.modulo())
+                    .ordem(item.ordem())
                     .build();
             salvar.add(q);
         }
@@ -111,6 +112,7 @@ public class QuestaoService {
         if (d.dica()              != null) q.setDica(d.dica());
         if (d.solucao()           != null) q.setSolucao(d.solucao());
         if (d.modulo()            != null) q.setModulo(d.modulo());
+        if (d.ordem()             != null) q.setOrdem(d.ordem());
 
         return toDTO(repo.save(q));
     }
@@ -166,28 +168,13 @@ public class QuestaoService {
 
     // ===== Listagens auxiliares =====
     public List<QuestaoDTO> listarPorSimulado(String idFormulario) {
-        try {
-            // Normalmente um simulado tem ~44 questões, então não precisa de limite
-            // Mas adicionamos limite de segurança para evitar problemas
-            List<QuestaoDTO> resultado = new ArrayList<>();
-            List<Questao> questoes = repo.findByIdFormulario(idFormulario);
-            
-            for (Questao q : questoes) {
-                try {
-                    resultado.add(toDTO(q));
-                } catch (Exception e) {
-                    log.warning(String.format("Erro ao converter questão %s para DTO: %s", q.getId(), e.getMessage()));
-                    // Continua processando outras questões mesmo se uma falhar
-                }
-            }
-            
-            return resultado.stream().limit(100).toList(); // Limite de segurança
-        } catch (Exception e) {
-            log.severe(String.format("Erro ao listar questões por simulado %s: %s", idFormulario, e.getMessage()));
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Erro ao buscar questões do simulado: " + e.getMessage(), e);
-        }
+        return repo.findByIdFormulario(idFormulario).stream()
+                .sorted((q1, q2) -> {
+                    Integer ordem1 = q1.getOrdem() != null ? q1.getOrdem() : Integer.MAX_VALUE;
+                    Integer ordem2 = q2.getOrdem() != null ? q2.getOrdem() : Integer.MAX_VALUE;
+                    return ordem1.compareTo(ordem2);
+                })
+                .map(this::toDTO).toList();
     }
 
     public List<QuestaoDTO> listarPorUsuario(String idUsuario) {
@@ -217,149 +204,33 @@ public class QuestaoService {
 
     // ===== Mapper =====
     private QuestaoDTO toDTO(Questao q) {
-        if (q == null) {
-            throw new IllegalArgumentException("Questão não pode ser null");
-        }
-        
-        // Aplica limpeza também na leitura como camada de segurança
-        // Isso garante que mesmo questões antigas sejam limpas ao serem retornadas
-        // Usa try-catch individual para cada campo para evitar que um campo corrompido quebre tudo
-        try {
-            return new QuestaoDTO(
-                    q.getId(),
-                    q.getIdFormulario(),
-                    q.getIdUsuario(),
-                    q.getTopic(),
-                    q.getSubskill(),
-                    q.getDifficulty(),
-                    safeCleanText(q.getQuestion()),
-                    safeCleanOptions(q.getOptions()),
-                    q.getCorrectOption(),
-                    safeCleanStringList(q.getSolution()),
-                    safeCleanStringList(q.getSolutionEnglish()),
-                    safeCleanStringList(q.getSolutionPortugues()),
-                    q.getStructure(),
-                    q.getFormat(),
-                    q.getRepresentation(),
-                    safeCleanText(q.getHint()),
-                    safeCleanText(q.getHintEnglish()),
-                    safeCleanText(q.getHintPortugues()),
-                    q.getTargetMistakes(),
-                    q.getFigure(),
-                    q.getSource(),
-                    q.getAlternativaMarcada(),
-                    q.getDica(),
-                    q.getSolucao(),
-                    q.getModulo()
-            );
-        } catch (Exception e) {
-            log.severe(String.format("Erro ao converter questão %s para DTO: %s", q.getId(), e.getMessage()));
-            throw new RuntimeException("Erro ao converter questão para DTO: " + e.getMessage(), e);
-        }
-    }
-    
-    // Métodos auxiliares seguros que nunca lançam exceção
-    private String safeCleanText(String text) {
-        try {
-            return TextCleaner.cleanText(text);
-        } catch (Exception e) {
-            log.warning("Erro ao limpar texto, retornando original: " + e.getMessage());
-            return text; // Retorna original se falhar
-        }
-    }
-    
-    private Map<String, String> safeCleanOptions(Map<String, String> options) {
-        try {
-            return TextCleaner.cleanOptions(options);
-        } catch (Exception e) {
-            log.warning("Erro ao limpar opções, retornando original: " + e.getMessage());
-            return options; // Retorna original se falhar
-        }
-    }
-    
-    private List<String> safeCleanStringList(List<String> list) {
-        try {
-            return TextCleaner.cleanStringList(list);
-        } catch (Exception e) {
-            log.warning("Erro ao limpar lista de strings, retornando original: " + e.getMessage());
-            return list; // Retorna original se falhar
-        }
-    }
-
-    /**
-     * Limpa todas as questões existentes no banco (endpoint administrativo)
-     * ATENÇÃO: Esta operação atualiza todas as questões e pode ser lenta
-     */
-    public int limparTodasQuestoes() {
-        List<Questao> todas = repo.findAll();
-        int atualizadas = 0;
-        
-        for (Questao q : todas) {
-            boolean precisaAtualizar = false;
-            
-            // Verifica se há duplicações e limpa
-            String questionOriginal = q.getQuestion();
-            String questionLimpa = TextCleaner.cleanText(questionOriginal);
-            if (!questionOriginal.equals(questionLimpa)) {
-                q.setQuestion(questionLimpa);
-                precisaAtualizar = true;
-            }
-            
-            Map<String, String> optionsOriginal = q.getOptions();
-            Map<String, String> optionsLimpa = TextCleaner.cleanOptions(optionsOriginal);
-            if (optionsOriginal != null && !optionsOriginal.equals(optionsLimpa)) {
-                q.setOptions(optionsLimpa);
-                precisaAtualizar = true;
-            }
-            
-            String hintOriginal = q.getHint();
-            String hintLimpa = TextCleaner.cleanText(hintOriginal);
-            if (hintOriginal != null && !hintOriginal.equals(hintLimpa)) {
-                q.setHint(hintLimpa);
-                precisaAtualizar = true;
-            }
-            
-            String hintEnglishOriginal = q.getHintEnglish();
-            String hintEnglishLimpa = TextCleaner.cleanText(hintEnglishOriginal);
-            if (hintEnglishOriginal != null && !hintEnglishOriginal.equals(hintEnglishLimpa)) {
-                q.setHintEnglish(hintEnglishLimpa);
-                precisaAtualizar = true;
-            }
-            
-            String hintPortuguesOriginal = q.getHintPortugues();
-            String hintPortuguesLimpa = TextCleaner.cleanText(hintPortuguesOriginal);
-            if (hintPortuguesOriginal != null && !hintPortuguesOriginal.equals(hintPortuguesLimpa)) {
-                q.setHintPortugues(hintPortuguesLimpa);
-                precisaAtualizar = true;
-            }
-            
-            List<String> solutionOriginal = q.getSolution();
-            List<String> solutionLimpa = TextCleaner.cleanStringList(solutionOriginal);
-            if (solutionOriginal != null && !solutionOriginal.equals(solutionLimpa)) {
-                q.setSolution(solutionLimpa);
-                precisaAtualizar = true;
-            }
-            
-            List<String> solutionEnglishOriginal = q.getSolutionEnglish();
-            List<String> solutionEnglishLimpa = TextCleaner.cleanStringList(solutionEnglishOriginal);
-            if (solutionEnglishOriginal != null && !solutionEnglishOriginal.equals(solutionEnglishLimpa)) {
-                q.setSolutionEnglish(solutionEnglishLimpa);
-                precisaAtualizar = true;
-            }
-            
-            List<String> solutionPortuguesOriginal = q.getSolutionPortugues();
-            List<String> solutionPortuguesLimpa = TextCleaner.cleanStringList(solutionPortuguesOriginal);
-            if (solutionPortuguesOriginal != null && !solutionPortuguesOriginal.equals(solutionPortuguesLimpa)) {
-                q.setSolutionPortugues(solutionPortuguesLimpa);
-                precisaAtualizar = true;
-            }
-            
-            if (precisaAtualizar) {
-                repo.save(q);
-                atualizadas++;
-            }
-        }
-        
-        return atualizadas;
+        return new QuestaoDTO(
+                q.getId(),
+                q.getIdFormulario(),
+                q.getIdUsuario(),
+                q.getTopic(),
+                q.getSubskill(),
+                q.getDifficulty(),
+                q.getQuestion(),
+                q.getOptions(),
+                q.getCorrectOption(),
+                q.getSolution(),
+                q.getSolutionEnglish(),
+                q.getSolutionPortugues(),
+                q.getStructure(),
+                q.getFormat(),
+                q.getRepresentation(),
+                q.getHint(),
+                q.getHintEnglish(),
+                q.getHintPortugues(),
+                q.getTargetMistakes(),
+                q.getFigure(),
+                q.getSource(),
+                q.getAlternativaMarcada(),
+                q.getDica(),
+                q.getSolucao(),
+                q.getModulo(),
+                q.getOrdem()
+        );
     }
 }
