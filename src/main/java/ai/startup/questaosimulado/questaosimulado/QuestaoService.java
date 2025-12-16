@@ -39,34 +39,24 @@ public class QuestaoService {
 
         List<Questao> salvar = new ArrayList<>();
         for (var item : itens) {
-            // Limpar duplicações de LaTeX e equações matemáticas
-            String cleanedQuestion = TextCleaner.cleanText(item.question());
-            Map<String, String> cleanedOptions = TextCleaner.cleanOptions(item.options());
-            String cleanedHint = TextCleaner.cleanText(item.hint());
-            String cleanedHintEnglish = TextCleaner.cleanText(item.hint_english());
-            String cleanedHintPortugues = TextCleaner.cleanText(item.hint_portugues());
-            List<String> cleanedSolution = TextCleaner.cleanStringList(item.solution());
-            List<String> cleanedSolutionEnglish = TextCleaner.cleanStringList(item.solution_english());
-            List<String> cleanedSolutionPortugues = TextCleaner.cleanStringList(item.solution_portugues());
-            
             Questao q = Questao.builder()
                     .idFormulario(item.id_formulario())
                     .idUsuario(item.id_usuario())
                     .topic(item.topic())
                     .subskill(item.subskill())
                     .difficulty(item.difficulty())
-                    .question(cleanedQuestion)
-                    .options(cleanedOptions)
+                    .question(item.question())
+                    .options(item.options())
                     .correctOption(item.correct_option())          // Object
-                    .solution(cleanedSolution)                     // legado
-                    .solutionEnglish(cleanedSolutionEnglish)
-                    .solutionPortugues(cleanedSolutionPortugues)
+                    .solution(item.solution())                     // legado
+                    .solutionEnglish(item.solution_english())
+                    .solutionPortugues(item.solution_portugues())
                     .structure(item.structure())
                     .format(item.format())
                     .representation(item.representation())
-                    .hint(cleanedHint)                             // legado
-                    .hintEnglish(cleanedHintEnglish)
-                    .hintPortugues(cleanedHintPortugues)
+                    .hint(item.hint())                             // legado
+                    .hintEnglish(item.hint_english())
+                    .hintPortugues(item.hint_portugues())
                     .targetMistakes(item.target_mistakes())
                     .figure(item.figure())
                     .source(item.source())
@@ -91,21 +81,21 @@ public class QuestaoService {
         if (d.topic()             != null) q.setTopic(d.topic());
         if (d.subskill()          != null) q.setSubskill(d.subskill());
         if (d.difficulty()        != null) q.setDifficulty(d.difficulty());
-        if (d.question()          != null) q.setQuestion(TextCleaner.cleanText(d.question()));
-        if (d.options()           != null) q.setOptions(TextCleaner.cleanOptions(d.options()));
+        if (d.question()          != null) q.setQuestion(d.question());
+        if (d.options()           != null) q.setOptions(d.options());
         if (d.correct_option()    != null) q.setCorrectOption(d.correct_option());
-        if (d.solution()          != null) q.setSolution(TextCleaner.cleanStringList(d.solution()));              // legado
+        if (d.solution()          != null) q.setSolution(d.solution());              // legado
         if (d.structure()         != null) q.setStructure(d.structure());
         if (d.format()            != null) q.setFormat(d.format());
         if (d.representation()    != null) q.setRepresentation(d.representation());
-        if (d.hint()              != null) q.setHint(TextCleaner.cleanText(d.hint()));                      // legado
+        if (d.hint()              != null) q.setHint(d.hint());                      // legado
         if (d.target_mistakes()   != null) q.setTargetMistakes(d.target_mistakes());
         if (d.source()            != null) q.setSource(d.source());
 
-        if (d.solution_english()  != null) q.setSolutionEnglish(TextCleaner.cleanStringList(d.solution_english()));
-        if (d.solution_portugues()!= null) q.setSolutionPortugues(TextCleaner.cleanStringList(d.solution_portugues()));
-        if (d.hint_english()      != null) q.setHintEnglish(TextCleaner.cleanText(d.hint_english()));
-        if (d.hint_portugues()    != null) q.setHintPortugues(TextCleaner.cleanText(d.hint_portugues()));
+        if (d.solution_english()  != null) q.setSolutionEnglish(d.solution_english());
+        if (d.solution_portugues()!= null) q.setSolutionPortugues(d.solution_portugues());
+        if (d.hint_english()      != null) q.setHintEnglish(d.hint_english());
+        if (d.hint_portugues()    != null) q.setHintPortugues(d.hint_portugues());
         if (d.figure()            != null) q.setFigure(d.figure());
 
         if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(d.alternativa_marcada());
