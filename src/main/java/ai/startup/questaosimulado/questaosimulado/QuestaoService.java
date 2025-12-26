@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
@@ -48,18 +47,16 @@ public class QuestaoService {
                     .question(item.question())
                     .options(item.options())
                     .correctOption(item.correct_option())          // Object
-                    .solution(item.solution())                     // legado
                     .solutionEnglish(item.solution_english())
                     .solutionPortugues(item.solution_portugues())
                     .structure(item.structure())
                     .format(item.format())
-                    .representation(item.representation())
-                    .hint(item.hint())                             // legado
                     .hintEnglish(item.hint_english())
                     .hintPortugues(item.hint_portugues())
                     .targetMistakes(item.target_mistakes())
                     .figure(item.figure())
                     .source(item.source())
+                    .exampleId(item.example_id())
                     .alternativaMarcada(item.alternativa_marcada())
                     .dica(item.dica() == null ? false : item.dica())
                     .solucao(item.solucao() == null ? false : item.solucao())
@@ -84,11 +81,8 @@ public class QuestaoService {
         if (d.question()          != null) q.setQuestion(d.question());
         if (d.options()           != null) q.setOptions(d.options());
         if (d.correct_option()    != null) q.setCorrectOption(d.correct_option());
-        if (d.solution()          != null) q.setSolution(d.solution());              // legado
         if (d.structure()         != null) q.setStructure(d.structure());
         if (d.format()            != null) q.setFormat(d.format());
-        if (d.representation()    != null) q.setRepresentation(d.representation());
-        if (d.hint()              != null) q.setHint(d.hint());                      // legado
         if (d.target_mistakes()   != null) q.setTargetMistakes(d.target_mistakes());
         if (d.source()            != null) q.setSource(d.source());
 
@@ -97,6 +91,7 @@ public class QuestaoService {
         if (d.hint_english()      != null) q.setHintEnglish(d.hint_english());
         if (d.hint_portugues()    != null) q.setHintPortugues(d.hint_portugues());
         if (d.figure()            != null) q.setFigure(d.figure());
+        if (d.example_id()        != null) q.setExampleId(d.example_id());
 
         if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(d.alternativa_marcada());
         if (d.dica()              != null) q.setDica(d.dica());
@@ -204,18 +199,16 @@ public class QuestaoService {
                 q.getQuestion(),
                 q.getOptions(),
                 q.getCorrectOption(),
-                q.getSolution(),
                 q.getSolutionEnglish(),
                 q.getSolutionPortugues(),
                 q.getStructure(),
                 q.getFormat(),
-                q.getRepresentation(),
-                q.getHint(),
                 q.getHintEnglish(),
                 q.getHintPortugues(),
                 q.getTargetMistakes(),
                 q.getFigure(),
                 q.getSource(),
+                q.getExampleId(),
                 q.getAlternativaMarcada(),
                 q.getDica(),
                 q.getSolucao(),
