@@ -30,23 +30,16 @@ public class Questao {
     // Agora pode ser "A"/"B"... ou -1 (free_response)
     private Object correctOption;
 
-    // Soluções bilíngues (novos campos)
+    // Soluções bilíngues
     private List<String> solutionEnglish;
     private List<String> solutionPortugues;
 
-    // Mantém retrocompatibilidade: se só vier "solution" antiga
-    private List<String> solution; // opcional
-
     private String structure;
     private String format;
-    private String representation; // se vier
 
     // Dicas bilíngues
     private String hintEnglish;
     private String hintPortugues;
-
-    // Mantém retrocompatibilidade: se só vier "hint" antiga
-    private String hint; // opcional
 
     // Lista de erros-alvo
     private List<String> targetMistakes;
@@ -55,6 +48,7 @@ public class Questao {
     private Map<String, Object> figure;
 
     private String source;
+    private String exampleId;
 
     // Campos do app
     private String alternativaMarcada;

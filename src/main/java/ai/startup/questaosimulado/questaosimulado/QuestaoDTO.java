@@ -13,18 +13,16 @@ public record QuestaoDTO(
         String question,
         Map<String,String> options,
         Object correct_option,                 // pode ser "A"/"B"... ou -1 (free_response)
-        List<String> solution,                 // legado (se vier)
         List<String> solution_english,
         List<String> solution_portugues,
         String structure,
         String format,
-        String representation,
-        String hint,                           // legado (se vier)
         String hint_english,
         String hint_portugues,
         List<String> target_mistakes,
         Map<String,Object> figure,
         String source,
+        String example_id,
 
         // campos do app
         String alternativa_marcada,

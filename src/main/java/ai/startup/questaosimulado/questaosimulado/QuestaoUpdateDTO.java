@@ -12,11 +12,8 @@ public record QuestaoUpdateDTO(
         String question,
         Map<String,String> options,
         Object correct_option,
-        List<String> solution,
         String structure,
         String format,
-        String representation,
-        String hint,
         List<String> target_mistakes,
         String source,
 
@@ -30,5 +27,6 @@ public record QuestaoUpdateDTO(
         Boolean dica,
         Boolean solucao,
         Integer modulo,
-        Integer ordem
+        Integer ordem,
+        String example_id
 ) {}

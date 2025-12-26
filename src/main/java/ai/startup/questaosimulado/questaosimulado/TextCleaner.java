@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 public class TextCleaner {
 
     /**
-     * Limpa duplicações em um texto de questão, opção, hint ou solução.
+     * Limpa duplicações em textos de questões e opções.
      */
     public static String cleanText(String text) {
         if (text == null || text.trim().isEmpty()) {

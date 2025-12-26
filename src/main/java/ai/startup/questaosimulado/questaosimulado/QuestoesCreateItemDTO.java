@@ -12,13 +12,11 @@ public record QuestoesCreateItemDTO(
         String question,
         Map<String,String> options,
         Object correct_option,                // <- agora Object
-        List<String> solution,                // legado (se vier)
         String structure,
         String format,
-        String representation,
-        String hint,                          // legado (se vier)
         List<String> target_mistakes,
         String source,
+        String example_id,
 
         // Novos campos:
         List<String> solution_english,
