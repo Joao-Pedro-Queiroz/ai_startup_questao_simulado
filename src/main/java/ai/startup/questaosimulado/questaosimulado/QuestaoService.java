@@ -57,7 +57,7 @@ public class QuestaoService {
                     .figure(item.figure())
                     .source(item.source())
                     .exampleId(item.example_id())
-                    .alternativaMarcada(item.alternativa_marcada())
+                    .alternativaMarcada(normalizeAnswer(item.alternativa_marcada()))
                     .dica(item.dica() == null ? false : item.dica())
                     .solucao(item.solucao() == null ? false : item.solucao())
                     .modulo(item.modulo())
@@ -93,7 +93,7 @@ public class QuestaoService {
         if (d.figure()            != null) q.setFigure(d.figure());
         if (d.example_id()        != null) q.setExampleId(d.example_id());
 
-        if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(d.alternativa_marcada());
+        if (d.alternativa_marcada()!= null) q.setAlternativaMarcada(normalizeAnswer(d.alternativa_marcada()));
         if (d.dica()              != null) q.setDica(d.dica());
         if (d.solucao()           != null) q.setSolucao(d.solucao());
         if (d.modulo()            != null) q.setModulo(d.modulo());
@@ -135,9 +135,9 @@ public class QuestaoService {
         for (var q : questoes) {
             var item = itemMap.get(q.getId());
             if (item != null) {
-                if (item.alternativa_marcada() != null) {
-                    q.setAlternativaMarcada(item.alternativa_marcada());
-                }
+            if (item.alternativa_marcada() != null) {
+                q.setAlternativaMarcada(normalizeAnswer(item.alternativa_marcada()));
+            }
                 if (item.dica() != null) {
                     q.setDica(item.dica());
                 }
@@ -185,6 +185,12 @@ public class QuestaoService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "Erro ao buscar questões do usuário: " + e.getMessage(), e);
         }
+    }
+
+    private String normalizeAnswer(String raw) {
+        if (raw == null) return null;
+        String trimmed = raw.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     // ===== Mapper =====
